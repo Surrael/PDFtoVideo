@@ -1,4 +1,5 @@
 import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -26,7 +27,7 @@ public class VideoGenerationGUI extends JFrame {
 
         // Apply FlatLaf look and feel
         try {
-            FlatLightLaf.install();
+            FlatDarkLaf.install();
         } catch (Exception ex) {
             System.err.println("Failed to initialize FlatLaf");
         }
@@ -229,11 +230,4 @@ public class VideoGenerationGUI extends JFrame {
         worker.execute();
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new VideoGenerationGUI();
-            }
-        });
-    }
 }
