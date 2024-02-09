@@ -11,10 +11,13 @@ public class VideoGenerationGUI extends JFrame {
 
     private File script;
     private File slideSetFile;
+    private JTextField outputFileNameField;
 
     private JLabel slideSetLabel;
     private JLabel scriptLabel;
     private JTextArea scriptTextArea;
+    private JProgressBar progressBar;
+    private String outputFileName;
 
     public VideoGenerationGUI() {
         setTitle("Video Generation");
@@ -42,8 +45,17 @@ public class VideoGenerationGUI extends JFrame {
 
         // TextArea for script editing
         scriptTextArea = new JTextArea();
-        scriptTextArea.setPreferredSize(new Dimension(600, 400));
+        scriptTextArea.setRows(20);
+        scriptTextArea.setColumns(50);
         JScrollPane scriptScrollPane = new JScrollPane(scriptTextArea);
+        scriptScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        scriptScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
+        // Text field for output file name
+        outputFileNameField = new JTextField(20);
+        JPanel outputFileNamePanel = new JPanel();
+        outputFileNamePanel.add(new JLabel("Output File Name:"));
+        outputFileNamePanel.add(outputFileNameField);
 
         selectSlideSetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -92,15 +104,20 @@ public class VideoGenerationGUI extends JFrame {
                     JOptionPane.showMessageDialog(null, "Please select a script and a slide set.", "Error", JOptionPane.ERROR_MESSAGE);
                 } else {
                     saveScriptContent();
-                    try {
-                        VideoCreator.generateVideo(script, slideSetFile.getAbsolutePath());
-                        displayCompletionDialog();
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
+                    outputFileName = outputFileNameField.getText().trim();
+                    if (outputFileName.isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "Please specify an output file name.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
+                    generateVideo(outputFileName);
                 }
             }
         });
+
+        // Progress bar
+        progressBar = new JProgressBar();
+        progressBar.setIndeterminate(true);
+        progressBar.setVisible(false);
 
         // Adding components to panels
         fileSelectionPanel.add(selectScriptButton);
@@ -108,7 +125,9 @@ public class VideoGenerationGUI extends JFrame {
         fileSelectionPanel.add(selectSlideSetButton);
         fileSelectionPanel.add(slideSetLabel);
 
+        buttonPanel.add(outputFileNamePanel);
         buttonPanel.add(startButton);
+        buttonPanel.add(progressBar);
 
         // Adding panels to the frame
         add(fileSelectionPanel, BorderLayout.NORTH);
@@ -172,7 +191,7 @@ public class VideoGenerationGUI extends JFrame {
         int response = JOptionPane.showConfirmDialog(null, "Video generation is complete. Do you want to open the video now?", "Generation Complete", JOptionPane.YES_NO_OPTION);
         if (response == JOptionPane.YES_OPTION) {
             // Open the generated video file
-            openVideoFile("outputconcat.mp4");
+            openVideoFile(outputFileName + ".mp4");
         }
     }
 
@@ -191,6 +210,25 @@ public class VideoGenerationGUI extends JFrame {
         }
     }
 
+    private void generateVideo(String outputFileName) {
+        progressBar.setVisible(true);
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                // This is where you call your video generation method
+                VideoCreator.generateVideo(script, slideSetFile.getAbsolutePath(), outputFileName);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                progressBar.setVisible(false);
+                displayCompletionDialog();
+            }
+        };
+        worker.execute();
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -199,4 +237,3 @@ public class VideoGenerationGUI extends JFrame {
         });
     }
 }
-

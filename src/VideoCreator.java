@@ -16,7 +16,7 @@ public class VideoCreator {
     private final static int WIDTH = 1920;
     private final static int HEIGHT = 1080;
 
-    public static void generateVideo(File script, String pdfFilePath) throws IOException {
+    public static void generateVideo(File script, String pdfFilePath, String outputFileName) throws IOException {
         // Parse the script
         Map<Integer, List<String>> scriptMap = ScriptParser.parseScriptFile(script);
 
@@ -59,7 +59,7 @@ public class VideoCreator {
         });
 
         // Concatenate all sentences
-        VideoCreator.concatenateMP4Files("inputconcat.txt", "outputconcat.mp4");
+        VideoCreator.concatenateMP4Files("inputconcat.txt", outputFileName + ".mp4");
 
         deleteTempFiles("inputconcat.txt", images, scriptMap, maxSlideLines);
     }
