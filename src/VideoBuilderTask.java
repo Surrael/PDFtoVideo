@@ -24,7 +24,7 @@ public class VideoBuilderTask extends Task<VideoBuilderTask, String> {
             fw.println("00:00:00,000 --> 99:59:59,999");
             fw.print(script);
         } finally {
-            VideoCreator.combineImageAndAudio("ffmpeg.exe", image,
+            VideoCreator.combineImageAndAudio(image,
                     "audio" + this.getId() + ".mp3", "output" + this.getId() + ".mp4",
                     "sub" + this.getId() + ".srt");
             file.delete();

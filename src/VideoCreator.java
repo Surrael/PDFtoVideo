@@ -79,10 +79,10 @@ public class VideoCreator {
             throw new RuntimeException(e);
         }
     }
-    public static void combineImageAndAudio(String ffmpegPath, String inputImagePath, String audioFilePath, String outputVideoPath, String sentence) throws IOException, InterruptedException {
+    public static void combineImageAndAudio(String inputImagePath, String audioFilePath, String outputVideoPath, String sentence) throws IOException, InterruptedException {
         // FFmpeg command to combine audio and image into a video
         String[] ffmpegCommand = {
-                ffmpegPath,
+                "ffmpeg",
                 "-y",
                 "-loop", "1",
                 "-i", inputImagePath,
