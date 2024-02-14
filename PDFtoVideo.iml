@@ -12,5 +12,6 @@
     <orderEntry type="library" name="jcodec-javase-0.2.5" level="project" />
     <orderEntry type="library" name="pdfbox-app-3.0.1" level="project" />
     <orderEntry type="library" name="flatlaf-3.3" level="project" />
+    <orderEntry type="library" name="pptx" level="project" />
   </component>
 </module>

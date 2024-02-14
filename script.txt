@@ -1,8 +1,0 @@
-#BEGIN-SLIDE:0
-Hello, this is the beginning of an extraordinary journey, where the ordinary transforms into the extraordinary.
-As the sun dips below the horizon, a world of possibilities unfolds, and our protagonist embarks on an adventure of a lifetime.
-#END-SLIDE
-#BEGIN-SLIDE:1
-Through winding paths and mysterious forests, each step taken unveils secrets hidden in the fabric of time.
-In the quietude of nature, whispers of destiny guide our hero to a place where magic and reality converge.
-#END-SLIDE
