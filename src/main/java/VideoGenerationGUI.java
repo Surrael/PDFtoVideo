@@ -1,3 +1,4 @@
+import com.formdev.flatlaf.FlatDarkLaf;
 import slide.PPTXextractor;
 import video.VideoCreator;
 
@@ -27,13 +28,14 @@ public class VideoGenerationGUI extends JFrame {
     private Map<Integer, List<String>> scriptMap = null;
 
     public VideoGenerationGUI() {
-        setTitle("Video Generation");
+        setTitle("VLG");
         setSize(800, 600);
+        setIconImage(Toolkit.getDefaultToolkit().getImage(VideoGenerationGUI.class.getResource("icon.png")));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         // Apply FlatLaf look and feel
         try {
-            com.formdev.flatlaf.FlatDarkLaf.install();
+            UIManager.setLookAndFeel(new FlatDarkLaf());
         } catch (Exception ex) {
             System.err.println("Failed to initialize FlatLaf");
         }
@@ -114,7 +116,11 @@ public class VideoGenerationGUI extends JFrame {
                     powerpointFile = fileChooser.getSelectedFile();
                     powerpointLabel.setText(powerpointFile.getName());
 
-                    PPTXextractor.convertPptxToPdf(powerpointFile.getAbsolutePath(), "slides.pdf");
+                    try {
+                        PPTXextractor.convertPptxToPdf(powerpointFile.getAbsolutePath(), "slides.pdf");
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
                     slideSetFile = new File("slides.pdf");
                     scriptMap = PPTXextractor.fetchNotes(powerpointFile.getAbsolutePath());
 

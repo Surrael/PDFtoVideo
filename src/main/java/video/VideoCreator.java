@@ -6,6 +6,8 @@ import threading.VideoBuilderTask;
 import marytts.LocalMaryInterface;
 import marytts.exceptions.MaryConfigurationException;
 import marytts.exceptions.SynthesisException;
+import tts.MaryTTS;
+import tts.OpenAI;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -44,7 +46,7 @@ public class VideoCreator {
             // For each line in a given slide, we submit the Threading.VideoBuilderTask
             for (int id = 0; id < slideLines.size(); id++) {
                 int taskID = (slideNumber * maxSlideLines) + id;
-                pool.submitTask(new VideoBuilderTask(taskID, slideLines.get(id), images.get(slideNumber)));
+                pool.submitTask(new VideoBuilderTask(taskID, slideLines.get(id), images.get(slideNumber), new MaryTTS())); // Pick TTS
             }
             pool.initShutdown(true); // synchronous
 
@@ -66,24 +68,67 @@ public class VideoCreator {
         // Concatenate all sentences
         VideoCreator.concatenateMP4Files("inputconcat.txt", outputFileName + ".mp4");
 
+        /* This allows you to overlay better TTS audio but might cause desync in subtitles
+        // Combine all strings into one long string
+        StringBuilder combinedString = new StringBuilder();
+        for (List<String> strings : scriptMap.values()) {
+            for (String str : strings) {
+                combinedString.append(str).append(" "); // Add each string followed by a space
+            }
+        }
+
+        // Remove trailing space
+        if (combinedString.length() > 0) {
+            combinedString.deleteCharAt(combinedString.length() - 1);
+        }
+
+        // Overlay better TTS audio
+        (new OpenAI()).speak(combinedString.toString(), "finalaudio.mp3");
+
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "ffmpeg",
+                    "-y",
+                    "-i", "temp.mp4",
+                    "-i", "finalaudio.mp3",
+                    "-c:v", "copy",
+                    "-c:a", "aac",
+                    "-strict", "experimental",
+                    "-map", "0:v:0",
+                    "-map", "1:a:0",
+                    "-shortest",
+                    outputFileName + ".mp4"
+            );
+            processBuilder.redirectErrorStream(true);
+
+            Process process = processBuilder.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                System.out.println("Audio replacement successful");
+            } else {
+                System.out.println("Error: Audio replacement failed");
+            }
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        File finalAudio = new File("finalaudio.mp3");
+        File tempVideo = new File("temp.mp4");
+        finalAudio.delete();
+        tempVideo.delete();
+        */
+
         deleteTempFiles("inputconcat.txt", images, scriptMap, maxSlideLines);
     }
-    public static void convertTextToSpeech(String inputText, String outputFilePath) {
-        try {
-            // Create a LocalMaryInterface
-            LocalMaryInterface marytts = new LocalMaryInterface();
 
-            // Synthesize speech from the input text
-            AudioInputStream audioStream = marytts.generateAudio(inputText);
-
-            AudioSystem.write(audioStream, javax.sound.sampled.AudioFileFormat.Type.WAVE, new File(outputFilePath));
-
-        } catch (MaryConfigurationException | SynthesisException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
     public static void combineImageAndAudio(String inputImagePath, String audioFilePath, String outputVideoPath, String sentence) throws IOException, InterruptedException {
         // FFmpeg command to combine audio and image into a video
         String[] ffmpegCommand = {
@@ -151,7 +196,7 @@ public class VideoCreator {
 
     private static void deleteTempFiles(String inputconcat, List<String> images, Map<Integer, List<String>> scriptMap, int maxSlideLines) {
         // Delete temp input list
-        File concatenatedInput = new File("inputconcat.txt");
+        File concatenatedInput = new File(inputconcat);
         concatenatedInput.delete();
 
 

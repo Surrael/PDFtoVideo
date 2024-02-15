@@ -1,5 +1,6 @@
 package threading;
 
+import tts.TTS;
 import video.VideoCreator;
 
 import java.io.File;
@@ -9,17 +10,19 @@ public class VideoBuilderTask extends Task<VideoBuilderTask, String> {
 
     private final String script;
     private final String image;
+    private final TTS tts;
 
-    public VideoBuilderTask(int id, String script, String image) {
+    public VideoBuilderTask(int id, String script, String image, TTS tts) {
         super(id);
         this.script = script;
         this.image = image;
+        this.tts = tts;
     }
 
     @Override
     public String runTask() throws Exception {
         File audioFile= new File("audio" + this.getId() + ".mp3");
-        VideoCreator.convertTextToSpeech(script, audioFile.getName());
+        tts.speak(script, audioFile.getName());
         File file = new File(String.format("sub%d.srt", this.getId()));
         try(PrintWriter fw = new PrintWriter(file)) {
             fw.println("1");

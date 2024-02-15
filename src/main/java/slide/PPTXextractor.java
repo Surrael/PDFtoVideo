@@ -11,13 +11,11 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.poi.sl.usermodel.Placeholder;
 import org.apache.poi.xslf.usermodel.*;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 
@@ -64,48 +62,44 @@ public class PPTXextractor {
         return notesMap;
     }
 
-    public static void convertPptxToPdf(String pptxFilePath, String pdfFilePath) {
-        try (FileInputStream fis = new FileInputStream(pptxFilePath);
-             FileOutputStream fos = new FileOutputStream(pdfFilePath);
-             XMLSlideShow ppt = new XMLSlideShow(fis)) {
+    public static void convertPptxToPdf(String pptxFilePath, String pdfFilePath) throws IOException {
+        // Load .pptx file
+        XMLSlideShow ppt = new XMLSlideShow(new FileInputStream(pptxFilePath));
+        // Create a new PDF document
+        PDDocument doc = new PDDocument();
+        // For each slide in the .pptx file
+        for (XSLFSlide slide : ppt.getSlides()) {
+            // Create a new page in the PDF document
+            PDPage page = new PDPage(new PDRectangle((float) ppt.getPageSize().getWidth(), (float) ppt.getPageSize().getHeight()));
+            doc.addPage(page);
+            // Create a new content stream that writes to the PDF document
+            PDPageContentStream content = new PDPageContentStream(doc, page);
+            // Convert the slide to an image
+            int scale = 4; // Increase this value to increase the resolution
+            BufferedImage img = new BufferedImage(scale * (int) ppt.getPageSize().getWidth(), scale * (int) ppt.getPageSize().getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D graphics = img.createGraphics();
+            graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+            graphics.scale(scale, scale);
+            slide.draw(graphics);
+            // Convert the image to a PDImageXObject
+            PDImageXObject ximage = PDImageXObject.createFromByteArray(doc, toByteArrayAutoClosable(img, "png"), "slide");
+            // Draw the image on the PDF page
+            content.drawImage(ximage, 0, 0, page.getMediaBox().getWidth(), page.getMediaBox().getHeight());
+            // Close the content stream
+            content.close();
+        }
+        // Save the PDF document to a file
+        doc.save(pdfFilePath);
+        // Close the PDF document
+        doc.close();
+    }
 
-            // Create a PDF document
-            PDDocument document = new PDDocument();
-
-            // Get the dimensions of the slide
-            Dimension slideSize = ppt.getPageSize();
-
-            // Iterate over each slide in the PowerPoint file
-            for (XSLFSlide slide : ppt.getSlides()) {
-                // Create a new page in the PDF document for each slide
-                PDPage page = new PDPage(new PDRectangle((float)slideSize.getWidth(), (float)slideSize.getHeight()));
-                document.addPage(page);
-
-                // Create a content stream for the page
-                try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-                    // Create a BufferedImage to render the slide content
-                    BufferedImage img = new BufferedImage((int)slideSize.getWidth(), (int)slideSize.getHeight(), BufferedImage.TYPE_INT_RGB);
-                    Graphics2D graphics = img.createGraphics();
-
-                    // Paint the slide background
-                    graphics.setPaint(Color.white);
-                    graphics.fill(new Rectangle2D.Float(0, 0, (float)slideSize.getWidth(), (float)slideSize.getHeight()));
-
-                    // Render the slide content
-                    slide.draw(graphics);
-
-                    // Convert the BufferedImage to a PDImageXObject
-                    PDImageXObject pdImage = LosslessFactory.createFromImage(document, img);
-
-                    // Draw the PDImageXObject onto the PDF page
-                    contentStream.drawImage(pdImage, 0, 0);
-                }
-            }
-
-            // Save the PDF document
-            document.save(fos);
-        } catch (IOException e) {
-            e.printStackTrace();
+    private static byte[] toByteArrayAutoClosable(BufferedImage img, String formatName) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            ImageIO.write(img, formatName, out);
+            return out.toByteArray();
         }
     }
 
