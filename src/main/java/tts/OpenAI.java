@@ -10,10 +10,10 @@ import java.io.FileOutputStream;
 public class OpenAI extends TTS {
     @Override
     public void speak(String text, String outPutFilePath) {
-        var openai= SimpleOpenAI.builder()
+        var openai = SimpleOpenAI.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
                 .build();
-
+        
         var speechRequest = AudioSpeechRequest.builder()
                 .model("tts-1")
                 .input(text)

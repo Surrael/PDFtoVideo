@@ -8,6 +8,7 @@ import marytts.exceptions.MaryConfigurationException;
 import marytts.exceptions.SynthesisException;
 import tts.MaryTTS;
 import tts.OpenAI;
+import tts.TTS;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -21,6 +22,7 @@ public class VideoCreator {
     private final static int THREADS = 10;
     private final static int WIDTH = 1920;
     private final static int HEIGHT = 1080;
+    private final static TTS tts = new OpenAI();
 
     public static void generateVideo(File script, String pdfFilePath,
                                      String outputFileName,  Map<Integer, List<String>> scriptMap) throws IOException {
@@ -46,7 +48,7 @@ public class VideoCreator {
             // For each line in a given slide, we submit the Threading.VideoBuilderTask
             for (int id = 0; id < slideLines.size(); id++) {
                 int taskID = (slideNumber * maxSlideLines) + id;
-                pool.submitTask(new VideoBuilderTask(taskID, slideLines.get(id), images.get(slideNumber), new MaryTTS())); // Pick TTS
+                pool.submitTask(new VideoBuilderTask(taskID, slideLines.get(id), images.get(slideNumber), tts));
             }
             pool.initShutdown(true); // synchronous
 
